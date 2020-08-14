@@ -136,19 +136,6 @@ void displayMenu()
     cout << "Twoj wybor: ";
 }
 
-void displaySubMenu()
-{
-    system("cls");
-    cout << "Wybierz co chcesz zmienic" << endl;
-    cout << "1 - Imie" << endl;
-    cout << "2 - Nazwisko" << endl;
-    cout << "3 - Numer telefonu" << endl;
-    cout << "4 - Email" << endl;
-    cout << "5 - Adres" << endl;
-    cout << "6 - Powrot do menu" << endl;
-    cout << "Twoj wybor: ";
-}
-
 void printVectorIteratorContent(vector<Addressee> vecAddressee, vector<Addressee>::iterator iter)
 {
     cout << iter->id << ". " << iter->idUser << ". " << iter->name << " " << iter->lastName << " "
@@ -242,6 +229,7 @@ void saveAddresseeToFile(string fileName, Addressee addressee)
 void saveAddresseeChangesToFile(int idAddresseeToCompare, Addressee editedAddressee)
 {
      Addressee addressee;
+     Addressee nullAddressee;
      string line;
      fstream addresseesFile;
      addresseesFile.open("Adresaci.txt", ios::in);
@@ -251,8 +239,12 @@ void saveAddresseeChangesToFile(int idAddresseeToCompare, Addressee editedAddres
          while(getline(addresseesFile, line))
          {
              addressee = getDataOfSingleAddressee(line);
-             if(addressee.id == idAddresseeToCompare)
-                saveAddresseeToFile("Adresaci_tymczasowi.txt", editedAddressee);
+             if(addressee.id == idAddresseeToCompare){
+                if(editedAddressee.id == 0)
+                    continue;
+                else
+                    saveAddresseeToFile("Adresaci_tymczasowi.txt", editedAddressee);
+            }
              else
                 saveAddresseeToFile("Adresaci_tymczasowi.txt", addressee);
          }
@@ -269,28 +261,24 @@ void saveAddresseeChangesToFile(int idAddresseeToCompare, Addressee editedAddres
      }
 }
 
-int readAddreessesFromFile(string fileName, vector<Addressee>& vecAddressee, int idUser, int* lastId)
+int readAddreessesFromFile(string fileName, vector<Addressee>& vecAddressee, int idUser, int lastId)
 {
-    int numberOfAdressees = 0;
     string line = "";
     fstream addresseesFile;
     addresseesFile.open(fileName.c_str(), ios::in);
 
-
     if(!addresseesFile)
     {
         cout << "Nie moglem otworzyc pliku o nazwie: " << fileName << endl;
-        Sleep(1500);
         returnToMenu();
-        return numberOfAdressees;
+        return lastId;
     }
 
     while(getline(addresseesFile, line))
     {
         Addressee addressee;
         addressee = getDataOfSingleAddressee(line);//, lastId);
-        *lastId = addressee.id;
-        numberOfAdressees += 1;
+        lastId = addressee.id;
         if(addressee.idUser == idUser)
             vecAddressee.push_back(addressee);
         //vecAllAddressees.push_back(addressee);
@@ -298,10 +286,10 @@ int readAddreessesFromFile(string fileName, vector<Addressee>& vecAddressee, int
     addresseesFile.close();
 
     if(!vecAddressee.empty()){  //when file exists and if contains any data
-        cout << "Ostatnie ID: " << *lastId << endl;
+        cout << "Ostatnie ID: " << lastId << endl;
         displayActualAddresseeList(vecAddressee);
     }
-    return numberOfAdressees;
+    return lastId;
 }
 
 int readUsersFromFile(string filename, vector<User>& vecUser)
@@ -332,20 +320,12 @@ int readUsersFromFile(string filename, vector<User>& vecUser)
     return numberOfUsers;
 }
 
-void sortVectorOfAddressees(vector<Addressee>& vecAddressee)
-{
-    sort(vecAddressee.begin(), vecAddressee.end(), [](const Addressee &left, const Addressee &right)
-    {
-        return left.id < right.id;
-    });
-}
-
-int addAddressee(vector<Addressee>& vecAddressee, int numberOfAddressees, int idUser, int *lastId)
+int addAddressee(vector<Addressee>& vecAddressee, int idUser, int lastId)
 {
     Addressee addressee;
     string name, lastName, telNumber, email, address;
     system("cls");
-    cout << "id, ktoremu uzytkownikowi zostanie przypisane, to: " << *lastId+1 << endl;
+    cout << "id, ktoremu uzytkownikowi zostanie przypisane, to: " << lastId+1 << endl;
 
     cout << "Podaj imie oraz nazwisko: ";
     cin >> name >> lastName;
@@ -358,23 +338,21 @@ int addAddressee(vector<Addressee>& vecAddressee, int numberOfAddressees, int id
     cin.sync();
     getline(cin, address);
 
-    *lastId += 1;
-    addressee.id = *lastId;
+    lastId += 1;
+    addressee.id = lastId;
     addressee.idUser = idUser;
     addressee.name = name;
     addressee.lastName = lastName;
     addressee.telNumber = telNumber;
     addressee.email = email;
     addressee.address = address;
-
     vecAddressee.push_back(addressee);
-    //sortVectorOfAddressees(vecAddressee);
+
     saveAddresseeToFile("Adresaci.txt", addressee);
-    numberOfAddressees += 1;
-
     cout << "Przyjaciel dodany" << endl;
+    returnToMenu();
 
-    return numberOfAddressees;
+    return lastId;
 }
 
 void searchByName(vector<Addressee> vecAddressee)
@@ -423,10 +401,12 @@ void searchByLastName(vector<Addressee> vecAddressee)
     returnToMenu();
 }
 
-int deleteAddressee(vector<Addressee>& vecAddressee, int numberOfAddressees, int idUser)
+void deleteAddressee(vector<Addressee>& vecAddressee)
 {
+    Addressee addressee;
     int addreseeToDelete;
     char deleteChoice;
+    bool addresseeFound = false;
 
     system("cls");
     cout << "Podaj ID adresata, ktorego chcesz usunac: ";
@@ -436,33 +416,32 @@ int deleteAddressee(vector<Addressee>& vecAddressee, int numberOfAddressees, int
     {
         if(iter->id == addreseeToDelete)
         {
+            addresseeFound = true;
             cout << "Znaleziono adresata o ID: " << iter->id << ". " << iter->name << " " << iter->lastName << endl;
             cout << "Czy na pewno chcesz go usunac? Wcisnij t, aby potwiedzic: ";
             cin >> deleteChoice;
             if(deleteChoice == 't')
             {
                 iter = vecAddressee.erase(iter);
-                numberOfAddressees -= 1;
                 cout << "Usunieto adresata o podanym ID" << endl;
-                //saveAddresseesToFile("book.txt", vecAddressee, idUser);
                 Sleep(1000);
-                return numberOfAddressees;
             }
             else
             {
                 cout << "Adresat nie zostanie usuniety" << endl;
                 returnToMenu();
-                return numberOfAddressees;
             }
+            saveAddresseeChangesToFile(addreseeToDelete, addressee);
+            break;
         }
     }
-    cout << "Nie znaleziono adresata o podanym id." << endl;
-    returnToMenu();
-
-    return numberOfAddressees;
+    if(!addresseeFound){
+        cout << "Nie znaleziono adresata o podanym id." << endl;
+        returnToMenu();
+    }
 }
 
-void editAddressee(vector<Addressee>& vecAddressee, int idUser)
+void editAddressee(vector<Addressee>& vecAddressee)
 {
     int addresseeToEdit, editChoice;
     bool addresseeFound = false;
@@ -477,7 +456,15 @@ void editAddressee(vector<Addressee>& vecAddressee, int idUser)
         if(iter->id == addresseeToEdit)
         {
             addresseeFound = true;
-            displaySubMenu();
+            system("cls");
+            cout << "Wybierz co chcesz zmienic" << endl;
+            cout << "1 - Imie" << endl;
+            cout << "2 - Nazwisko" << endl;
+            cout << "3 - Numer telefonu" << endl;
+            cout << "4 - Email" << endl;
+            cout << "5 - Adres" << endl;
+            cout << "6 - Powrot do menu" << endl;
+            cout << "Twoj wybor: ";
             cin >> editChoice;
             if(editChoice == 1)
             {
@@ -485,7 +472,6 @@ void editAddressee(vector<Addressee>& vecAddressee, int idUser)
                 cin >> name;
                 iter->name = name;
                 cout << "Imie zostalo zmienione!" << endl;
-                //saveAddresseeChangesToFile(addresseeToEdit, *iter);
             }
             else if(editChoice == 2)
             {
@@ -493,7 +479,6 @@ void editAddressee(vector<Addressee>& vecAddressee, int idUser)
                 cin >> lastName;
                 iter->lastName = lastName;
                 cout << "Nazwisko zostalo zmienione!" << endl;
-                //saveAddresseeChangesToFile(addresseeToEdit, *iter);
             }
             else if(editChoice == 3)
             {
@@ -502,7 +487,6 @@ void editAddressee(vector<Addressee>& vecAddressee, int idUser)
                 getline(cin, telNumber);
                 iter->telNumber = telNumber;
                 cout << "Nr telefonu zostal zmieniony!" << endl;
-                //saveAddresseeChangesToFile(addresseeToEdit, *iter);
             }
             else if(editChoice == 4)
             {
@@ -510,7 +494,6 @@ void editAddressee(vector<Addressee>& vecAddressee, int idUser)
                 cin >> email;
                 iter->email = email;
                 cout << "Email zostal zmieniony!" << endl;
-                //saveAddresseeChangesToFile(addresseeToEdit, *iter);
             }
             else if(editChoice == 5)
             {
@@ -519,7 +502,6 @@ void editAddressee(vector<Addressee>& vecAddressee, int idUser)
                 getline(cin, address);
                 iter->address = address;
                 cout << "Adres zostal zmieniony!" << endl;
-                //saveAddresseeChangesToFile(addresseeToEdit, *iter);
             }
             else if(editChoice = 6)
                 break;
@@ -536,7 +518,6 @@ void editAddressee(vector<Addressee>& vecAddressee, int idUser)
 int main()
 {
     vector<Addressee> vecAddressee;
-    vector<Addressee> vecAllAddressees;
     vector<User> vecUser;
     int numberOfUsers = 0, numberOfAddressees = 0, idUser = 0, lastId = 0;
     char windowMode = '1';
@@ -567,7 +548,7 @@ int main()
                     idUser = logging(vecUser);
                     if(idUser > 0)
                     {
-                        numberOfAddressees = readAddreessesFromFile("Adresaci.txt", vecAddressee, idUser, &lastId);
+                        lastId = readAddreessesFromFile("Adresaci.txt", vecAddressee, idUser, lastId);
                         windowMode = '2';
                     }
                 }
@@ -584,13 +565,12 @@ int main()
             char menuChoice = '0';
             system("cls");
             cout << "Id zalogowanego uzytkownika: " << idUser << endl;
-            cout << "Liczba wszystkich adresatow: " << numberOfAddressees << endl;
             cout << "Zawartosc vectora Adresaci dla danego idUser: " << vecAddressee.size() << endl;
             cout << "Ostatnie ID: " << lastId << endl;
             displayMenu();
             menuChoice = getch();
             if(menuChoice == '1')
-                numberOfAddressees = addAddressee(vecAddressee, numberOfAddressees, idUser, &lastId);
+                lastId = addAddressee(vecAddressee, idUser, lastId);
 
             else if(menuChoice == '2')
                 searchByName(vecAddressee);
@@ -602,13 +582,13 @@ int main()
                 displayActualAddresseeList(vecAddressee);
 
             else if(menuChoice == '5')
-                numberOfAddressees = deleteAddressee(vecAddressee, numberOfAddressees, idUser);
+                deleteAddressee(vecAddressee);
 
             else if(menuChoice == '6')
-                editAddressee(vecAddressee, idUser);
+                editAddressee(vecAddressee);
 
-            //else if(menuChoice == '7')
-            //changePassword();
+            else if(menuChoice == '7')
+                changePassword();
 
             else if(menuChoice == '8')
             {
@@ -622,3 +602,14 @@ int main()
     }
     return 0;
 }
+
+
+/*
+void sortVectorOfAddressees(vector<Addressee>& vecAddressee)
+{
+    sort(vecAddressee.begin(), vecAddressee.end(), [](const Addressee &left, const Addressee &right)
+    {
+        return left.id < right.id;
+    });
+}
+*/
