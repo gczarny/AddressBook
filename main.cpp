@@ -121,19 +121,29 @@ string stringToLower(string slowo)
     return slowo;
 }
 
-void displayMenu()
+void displayMenu(char windowMode)
 {
-    //system("cls");
-    cout << "KSIAZKA ADRESOWA" << endl;
-    cout << "1. Dodaj adresata." << endl;
-    cout << "2. Wyszukaj po imieniu." << endl;
-    cout << "3. Wyszukaj po nazwisku." << endl;
-    cout << "4. Wyswietl wszystkich adresatow." << endl;
-    cout << "5. Usun adresata." << endl;
-    cout << "6. Edytuj adresata." << endl;
-    cout << "7. Zmien haslo." << endl;
-    cout << "8. Wyloguj sie." << endl;
-    cout << "Twoj wybor: ";
+    system("cls");
+    if(windowMode == '1')
+    {
+        cout << "1. Logowanie" << endl;
+        cout << "2. Rejestracja." << endl;
+        cout << "3. Zamknij program." << endl;
+    }
+
+    else if(windowMode == '2')
+    {
+        cout << "KSIAZKA ADRESOWA" << endl;
+        cout << "1. Dodaj adresata." << endl;
+        cout << "2. Wyszukaj po imieniu." << endl;
+        cout << "3. Wyszukaj po nazwisku." << endl;
+        cout << "4. Wyswietl wszystkich adresatow." << endl;
+        cout << "5. Usun adresata." << endl;
+        cout << "6. Edytuj adresata." << endl;
+        cout << "7. Zmien haslo." << endl;
+        cout << "8. Wyloguj sie." << endl;
+        cout << "Twoj wybor: ";
+    }
 }
 
 void printVectorIteratorContent(vector<Addressee> vecAddressee, vector<Addressee>::iterator iter)
@@ -158,7 +168,7 @@ void displayActualAddresseeList(vector<Addressee> vecAddressee)
     returnToMenu();
 }
 
-Addressee getDataOfSingleAddressee(string line)//, int *lastID)
+Addressee getDataOfSingleAddressee(string line)
 {
     Addressee addressee;
     string singleAddreesseData = "";
@@ -515,12 +525,32 @@ void editAddressee(vector<Addressee>& vecAddressee)
     }
 }
 
+void changePassword(vector<User>& vecUser, int idUser)
+{
+    string password;
+
+    system("cls");
+    cout << "Podaj nowe haslo: ";
+    cin >> password;
+
+    for(vector<User>::iterator iter = vecUser.begin(); iter != vecUser.end(); ++iter)
+    {
+        if(iter->id == idUser)
+        {
+            iter->password = password;
+            cout << "Haslo zostalo zmienione!";
+            returnToMenu();
+        }
+    }
+    saveUsersToFile("Uzytkownicy.txt", vecUser);
+}
+
 int main()
 {
     vector<Addressee> vecAddressee;
     vector<User> vecUser;
     int numberOfUsers = 0, numberOfAddressees = 0, idUser = 0, lastId = 0;
-    char windowMode = '1';
+    char windowMode = '1', menuChoice = '0';
 
     numberOfUsers = readUsersFromFile("Uzytkownicy.txt", vecUser);
 
@@ -528,15 +558,10 @@ int main()
     {
         if(windowMode == '1')
         {
-            char optionChoice = 0;
-            system("cls");
-            cout << "Liczba uzytkownikow: " << numberOfUsers << endl;
-            cout << "1. Logowanie" << endl;
-            cout << "2. Rejestracja." << endl;
-            cout << "3. Zamknij program." << endl;
-            optionChoice = getch();
+            displayMenu(windowMode);
+            menuChoice = getch();
 
-            if(optionChoice == '1')
+            if(menuChoice == '1')
             {
                 if(numberOfUsers == 0)
                 {
@@ -553,22 +578,22 @@ int main()
                     }
                 }
             }
-            else if(optionChoice == '2')
+            else if(menuChoice == '2')
                 numberOfUsers = registration(vecUser, numberOfUsers);
 
-            else if(optionChoice == '3')
+            else if(menuChoice == '3')
                 exit(0);
         }
 
         else if(windowMode == '2')
         {
-            char menuChoice = '0';
             system("cls");
             cout << "Id zalogowanego uzytkownika: " << idUser << endl;
             cout << "Zawartosc vectora Adresaci dla danego idUser: " << vecAddressee.size() << endl;
             cout << "Ostatnie ID: " << lastId << endl;
-            displayMenu();
+            displayMenu(windowMode);
             menuChoice = getch();
+
             if(menuChoice == '1')
                 lastId = addAddressee(vecAddressee, idUser, lastId);
 
@@ -588,13 +613,12 @@ int main()
                 editAddressee(vecAddressee);
 
             else if(menuChoice == '7')
-                changePassword();
+                changePassword(vecUser, idUser);
 
             else if(menuChoice == '8')
             {
-                system("cls");
-                cout << "Wylogowano sie!" << endl;
-                Sleep(1000);
+                cout << endl << "Wylogowano sie!" << endl;
+                returnToMenu();
                 windowMode = '1';
                 vecAddressee.clear();
             }
