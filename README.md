@@ -1,2 +1,2 @@
 # AddressBook
-Address book when you can store infos about your friends/addressees with possibility to switch between users. Addressees are visible and stored only for individidual user with specify ID.
+Address book where you can store informations about your friends/addressees with possibility to switch between users. Addressees are visible and stored only for individidual user with specify ID.
