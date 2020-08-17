@@ -26,27 +26,10 @@ struct User
 
 void returnToMenu()
 {
+    cin.clear();
     cin.sync();
     cout << endl << "Wcisnij dowolny klawisz, aby wrocic do menu...";
     getch();
-}
-
-char getCharacter()
-{
-    string enteredInput = "";
-    char characterFromEnteredInput  = {0};
-
-    while (true){
-        getline(cin, enteredInput);
-
-        if (enteredInput.length() == 1){
-            characterFromEnteredInput = enteredInput[0];
-            break;
-        }
-        cout << "To nie jest pojedynczy znak. Wpisz ponownie." << endl;
-    }
-
-    return characterFromEnteredInput;
 }
 
 string convertIntToString(int value)
@@ -165,6 +148,8 @@ void displayMenu(char windowMode)
     }
 }
 
+
+
 void printVectorIteratorContent(vector<Addressee> vecAddressee, vector<Addressee>::iterator iter)
 {
     cout << iter->id << ". " << iter->idUser << ". " << iter->name << " " << iter->lastName << " "
@@ -192,7 +177,6 @@ Addressee getDataOfSingleAddressee(string line)
     for (int i = 0; i < line.length(); i++){
         if (line[i] != '|')
             singleAddreesseData += line[i];
-
         else{
             switch(numberOfSingleAddresseData){
             case 1:
@@ -221,7 +205,6 @@ Addressee getDataOfSingleAddressee(string line)
             numberOfSingleAddresseData++;
         }
     }
-
     return addressee;
 }
 
@@ -298,12 +281,6 @@ int readAddreessesFromFile(string fileName, vector<Addressee>& vecAddressee, int
             vecAddressee.push_back(addressee);
     }
     addresseesFile.close();
-
-    if(!vecAddressee.empty()){   //when file exists and if contains any data
-        cout << "Ostatnie ID: " << lastId << endl;
-        displayActualAddresseeList(vecAddressee);
-    }
-
     return lastId;
 }
 
@@ -408,7 +385,7 @@ void searchByLastName(vector<Addressee> vecAddressee)
     returnToMenu();
 }
 
-void deleteAddressee(vector<Addressee>& vecAddressee)
+int deleteAddressee(vector<Addressee>& vecAddressee, int idUser, int lastId)
 {
     Addressee addressee;
     int addreseeToDelete;
@@ -433,14 +410,18 @@ void deleteAddressee(vector<Addressee>& vecAddressee)
             else{
                 cout << "Adresat nie zostanie usuniety" << endl;
                 returnToMenu();
+                return lastId;
             }
             saveAddresseeChangesToFile(addreseeToDelete, addressee);
-            break;
+            vecAddressee.clear();
+            lastId = readAddreessesFromFile("Adresaci.txt", vecAddressee,  idUser, lastId);
+            return lastId;
         }
     }
     if(!addresseeFound){
         cout << "Nie znaleziono adresata o podanym id." << endl;
         returnToMenu();
+        return lastId;
     }
 }
 
@@ -542,7 +523,7 @@ int main()
     while(true){
         if(windowMode == '1'){
             displayMenu(windowMode);
-            menuChoice = getCharacter();
+            menuChoice = getch();
 
             if(menuChoice == '1'){
                 if(numberOfUsers == 0){
@@ -565,7 +546,7 @@ int main()
         }
         else if(windowMode == '2'){
             displayMenu(windowMode);
-            menuChoice = getCharacter();
+            menuChoice = getch();
 
             if(menuChoice == '1')
                 lastId = addAddressee(vecAddressee, idUser, lastId);
@@ -580,7 +561,7 @@ int main()
                 displayActualAddresseeList(vecAddressee);
 
             else if(menuChoice == '5')
-                deleteAddressee(vecAddressee);
+                lastId = deleteAddressee(vecAddressee, idUser, lastId);
 
             else if(menuChoice == '6')
                 editAddressee(vecAddressee);
@@ -596,17 +577,5 @@ int main()
             }
         }
     }
-
     return 0;
 }
-
-
-/*
-void sortVectorOfAddressees(vector<Addressee>& vecAddressee)
-{
-    sort(vecAddressee.begin(), vecAddressee.end(), [](const Addressee &left, const Addressee &right)
-    {
-        return left.id < right.id;
-    });
-}
-*/
