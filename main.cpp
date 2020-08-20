@@ -125,6 +125,51 @@ int User::registration(vector<User>& vecUser, int numberOfUsers)
     return numberOfUsers;
 }
 
+int User::readUsersFromFile(string filename, vector<User>& vecUser)
+{
+    int numberOfUsers = 0;
+    string line;
+    ifstream usersFile(filename);
+
+    if(!usersFile){
+        cout << "Nie moglem otworzyc pliku o nazwie: " << filename << endl;
+        Sleep(1500);
+        return numberOfUsers;
+    }
+    while (getline(usersFile, line)){
+        User users;
+        istringstream iss(line);
+        istringstream(line) >> users.id;
+        getline(iss, line, '|');
+        getline(iss, users.login, '|');
+        getline(iss, users.password, '|');
+        vecUser.push_back(users);
+        numberOfUsers += 1;
+    }
+    usersFile.close();
+
+    return numberOfUsers;
+}
+
+void User::changePassword(vector<User>& vecUser, int idUser)
+{
+    string password;
+
+    system("cls");
+    cout << "Podaj nowe haslo: ";
+    cin >> password;
+
+    for(vector<User>::iterator iter = vecUser.begin(); iter != vecUser.end(); ++iter){
+        if(iter->id == idUser){
+            iter->password = password;
+            cout << "Haslo zostalo zmienione!";
+            returnToMenu();
+            saveUsersToFile("Uzytkownicy.txt", vecUser);
+            break;
+        }
+    }
+}
+
 string stringToLower(string wordToLower)
 {
     transform(wordToLower.begin(), wordToLower.end(), wordToLower.begin(), ::tolower);
@@ -287,32 +332,6 @@ int readAddreessesFromFile(string fileName, vector<Addressee>& vecAddressee, int
     }
     addresseesFile.close();
     return lastId;
-}
-
-int User::readUsersFromFile(string filename, vector<User>& vecUser)
-{
-    int numberOfUsers = 0;
-    string line;
-    ifstream usersFile(filename);
-
-    if(!usersFile){
-        cout << "Nie moglem otworzyc pliku o nazwie: " << filename << endl;
-        Sleep(1500);
-        return numberOfUsers;
-    }
-    while (getline(usersFile, line)){
-        User users;
-        istringstream iss(line);
-        istringstream(line) >> users.id;
-        getline(iss, line, '|');
-        getline(iss, users.login, '|');
-        getline(iss, users.password, '|');
-        vecUser.push_back(users);
-        numberOfUsers += 1;
-    }
-    usersFile.close();
-
-    return numberOfUsers;
 }
 
 int addAddressee(vector<Addressee>& vecAddressee, int idUser, int lastId)
@@ -494,25 +513,6 @@ void editAddressee(vector<Addressee>& vecAddressee)
     if(!addresseeFound){
         cout << "Nie znaleziono osoby o podanym id!";
         returnToMenu();
-    }
-}
-
-void User::changePassword(vector<User>& vecUser, int idUser)
-{
-    string password;
-
-    system("cls");
-    cout << "Podaj nowe haslo: ";
-    cin >> password;
-
-    for(vector<User>::iterator iter = vecUser.begin(); iter != vecUser.end(); ++iter){
-        if(iter->id == idUser){
-            iter->password = password;
-            cout << "Haslo zostalo zmienione!";
-            returnToMenu();
-            saveUsersToFile("Uzytkownicy.txt", vecUser);
-            break;
-        }
     }
 }
 
