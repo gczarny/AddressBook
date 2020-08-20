@@ -17,11 +17,24 @@ struct Addressee
     string name = "", lastName = "", telNumber = "", email = "", address = "";
 };
 
-struct User
+class User
 {
-    int id = 0;
-    string login = "";
-    string password = "";
+    int id;
+    string login;
+    string password;
+
+public:
+    User(int id, string login, string password){
+        this->id = id;
+        this->login = login;
+        this->password = password;
+    }
+    User(){};
+    int logging(vector<User> vecUser);
+    int registration(vector<User>& vecUser, int numberOfUsers);
+    void saveUsersToFile(string filename, vector<User> vecUser);
+    int readUsersFromFile(string filename, vector<User>& vecUser);
+    void changePassword(vector<User>& vecUser, int idUser);
 };
 
 void returnToMenu()
@@ -41,7 +54,7 @@ string convertIntToString(int value)
     return str;
 }
 
-void saveUsersToFile(string filename, vector<User> vecUser)
+void User::saveUsersToFile(string filename, vector<User> vecUser)
 {
     fstream usersFile;
     usersFile.open(filename, ios::out | ios::trunc);
@@ -52,9 +65,9 @@ void saveUsersToFile(string filename, vector<User> vecUser)
     usersFile.close();
 }
 
-int logging(vector<User> vecUser)
+int User::logging(vector<User> vecUser)
 {
-    string login, password;
+    //string login, password;
     int idUser = 0;
     bool loginCorrect = false;
 
@@ -88,11 +101,8 @@ int logging(vector<User> vecUser)
     return 0;
 }
 
-int registration(vector<User>& vecUser, int numberOfUsers)
+int User::registration(vector<User>& vecUser, int numberOfUsers)
 {
-    string login, password;
-    User user;
-
     system("cls");
     cout << "Podaj nazwe uzytkownika (login): ";
     cin >> login;
@@ -105,12 +115,9 @@ int registration(vector<User>& vecUser, int numberOfUsers)
     }
     cout << "Podaj haslo: ";
     cin >> password;
-
-    user.login = login;
-    user.password = password;
-    user.id = numberOfUsers+1;
-    vecUser.push_back(user);
     numberOfUsers += 1;
+    User user(numberOfUsers, login, password);
+    vecUser.push_back(user);
     saveUsersToFile("Uzytkownicy.txt", vecUser);
     cout << "Pomyslnie zarejestrowano uzytkownika" << endl;
     returnToMenu();
@@ -147,8 +154,6 @@ void displayMenu(char windowMode)
         cout << "Twoj wybor: ";
     }
 }
-
-
 
 void printVectorIteratorContent(vector<Addressee> vecAddressee, vector<Addressee>::iterator iter)
 {
@@ -284,7 +289,7 @@ int readAddreessesFromFile(string fileName, vector<Addressee>& vecAddressee, int
     return lastId;
 }
 
-int readUsersFromFile(string filename, vector<User>& vecUser)
+int User::readUsersFromFile(string filename, vector<User>& vecUser)
 {
     int numberOfUsers = 0;
     string line;
@@ -492,7 +497,7 @@ void editAddressee(vector<Addressee>& vecAddressee)
     }
 }
 
-void changePassword(vector<User>& vecUser, int idUser)
+void User::changePassword(vector<User>& vecUser, int idUser)
 {
     string password;
 
@@ -517,8 +522,9 @@ int main()
     vector<User> vecUser;
     int numberOfUsers = 0, idUser = 0, lastId = 0;
     char windowMode = '1', menuChoice = '0';
+    User user;
 
-    numberOfUsers = readUsersFromFile("Uzytkownicy.txt", vecUser);
+    numberOfUsers = user.readUsersFromFile("Uzytkownicy.txt", vecUser);
 
     while(true){
         if(windowMode == '1'){
@@ -531,7 +537,7 @@ int main()
                     Sleep(1000);
                 }
                 else{
-                    idUser = logging(vecUser);
+                    idUser = user.logging(vecUser);
                     if(idUser > 0){
                         lastId = readAddreessesFromFile("Adresaci.txt", vecAddressee, idUser, lastId);
                         windowMode = '2';
@@ -539,7 +545,7 @@ int main()
                 }
             }
             else if(menuChoice == '2')
-                numberOfUsers = registration(vecUser, numberOfUsers);
+                numberOfUsers = user.registration(vecUser, numberOfUsers);
 
             else if(menuChoice == '3')
                 exit(0);
@@ -567,7 +573,7 @@ int main()
                 editAddressee(vecAddressee);
 
             else if(menuChoice == '7')
-                changePassword(vecUser, idUser);
+                user.changePassword(vecUser, idUser);
 
             else if(menuChoice == '8'){
                 cout << endl << "Wylogowano sie!" << endl;
