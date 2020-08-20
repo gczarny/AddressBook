@@ -32,8 +32,8 @@ public:
     User(){};
     int logging(vector<User> vecUser);
     int registration(vector<User>& vecUser, int numberOfUsers);
-    void saveUsersToFile(string filename, vector<User> vecUser);
     int readUsersFromFile(string filename, vector<User>& vecUser);
+    void saveUsersToFile(string filename, vector<User> vecUser);
     void changePassword(vector<User>& vecUser, int idUser);
 };
 
@@ -67,8 +67,6 @@ void User::saveUsersToFile(string filename, vector<User> vecUser)
 
 int User::logging(vector<User> vecUser)
 {
-    //string login, password;
-    int idUser = 0;
     bool loginCorrect = false;
 
     cout << "Podaj twoj login: ";
@@ -83,9 +81,9 @@ int User::logging(vector<User> vecUser)
                 if(iter->password == password){
                     cout << "Zalogowales sie!" << endl;
                     Sleep(1300);
-                    idUser = iter->id;
+                    id= iter->id;
 
-                    return idUser;
+                    return id;
                 }
             }
             cout << "Podales 3 razy bledne haslo! Czas oczekiwania: 3 sekundy" << endl;
@@ -153,8 +151,6 @@ int User::readUsersFromFile(string filename, vector<User>& vecUser)
 
 void User::changePassword(vector<User>& vecUser, int idUser)
 {
-    string password;
-
     system("cls");
     cout << "Podaj nowe haslo: ";
     cin >> password;
@@ -522,9 +518,9 @@ int main()
     vector<User> vecUser;
     int numberOfUsers = 0, idUser = 0, lastId = 0;
     char windowMode = '1', menuChoice = '0';
-    User user;
+    User users;
 
-    numberOfUsers = user.readUsersFromFile("Uzytkownicy.txt", vecUser);
+    numberOfUsers = users.readUsersFromFile("Uzytkownicy.txt", vecUser);
 
     while(true){
         if(windowMode == '1'){
@@ -537,7 +533,7 @@ int main()
                     Sleep(1000);
                 }
                 else{
-                    idUser = user.logging(vecUser);
+                    idUser = users.logging(vecUser);
                     if(idUser > 0){
                         lastId = readAddreessesFromFile("Adresaci.txt", vecAddressee, idUser, lastId);
                         windowMode = '2';
@@ -545,7 +541,7 @@ int main()
                 }
             }
             else if(menuChoice == '2')
-                numberOfUsers = user.registration(vecUser, numberOfUsers);
+                numberOfUsers = users.registration(vecUser, numberOfUsers);
 
             else if(menuChoice == '3')
                 exit(0);
@@ -573,7 +569,7 @@ int main()
                 editAddressee(vecAddressee);
 
             else if(menuChoice == '7')
-                user.changePassword(vecUser, idUser);
+                users.changePassword(vecUser, idUser);
 
             else if(menuChoice == '8'){
                 cout << endl << "Wylogowano sie!" << endl;
